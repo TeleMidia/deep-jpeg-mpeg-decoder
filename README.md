@@ -9,4 +9,5 @@ With Python >= 3.6.5 and pip, install the dependencies:
     $ pip install scikit-image
     $ pip install opencv-python
     $ pip install matplotlib
+    $ pip install scipy
 
