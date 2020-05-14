@@ -6,6 +6,7 @@ import random as rand
 import os
 import glob
 import lib.jpeg as jpg
+from tqdm import tqdm
 from skimage.measure import compare_ssim, compare_psnr, compare_nrmse
 
 exp_chart_folder = None
@@ -74,7 +75,7 @@ def load_experiment_data():
         with open(path, "r") as file:
             dict_chart_data = eval(file.readline())
             #print(dict_chart_data)
-            print(dict_chart_data["epoch"])
+            #print(dict_chart_data["epoch"])
             if len(dict_chart_data["epoch"]) > 0:
                 LAST_EPOCH = int(dict_chart_data["epoch"][-1])
                 #print(LAST_EPOCH)    
@@ -170,7 +171,7 @@ def draw_chart():
 
 
 
-def load_dataset(root_folder, limit=None):
+def load_dataset(root_folder, limit=None, loadOriginalImage=False):
 
     dataset_x = []
     dataset_y = []
@@ -180,15 +181,25 @@ def load_dataset(root_folder, limit=None):
     qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=50)
     qtable_luma_10, qtable_chroma_10 = jpg.generate_qtables(quality_factor=10)
 
-    for file_ in glob.iglob(root_folder+"/*/*.jpg"):
-        img = open_image(file_)
-
-        if img is None:
-            print("Corrupted dataset!")
-            return None, None
-
-        dataset_x.append(jpg.encode_image(img, qtable_luma_10, qtable_chroma_10))
-        dataset_y.append(jpg.encode_image(img, qtable_luma_50, qtable_chroma_50))
+    for file_ in tqdm(glob.iglob(root_folder+"/*/*.jpg")):
+        
+        if loadOriginalImage == True:
+            img = open_image(file_)
+            if img is None:
+                print("Corrupted dataset!")
+                return None, None
+        
+            dataset_x.append(jpg.encode_image(img, qtable_luma_10, qtable_chroma_10))
+            dataset_y.append(jpg.encode_image(img, qtable_luma_50, qtable_chroma_50))
+        else:
+            basename_jpg = os.path.basename(file_)
+            basename_q10 = basename_jpg.replace(".jpg","")+"_q10.npy"
+            basename_q50 = basename_jpg.replace(".jpg","")+"_q50.npy"
+            file_ = file_.replace(basename_jpg, "")
+            file_path_q10 = os.path.join(file_, basename_q10)
+            file_path_q50 = os.path.join(file_, basename_q50)
+            dataset_x.append(np.load(file_path_q10))
+            dataset_y.append(np.load(file_path_q50))
 
         counter += 1
         if limit != None and counter >= limit:
