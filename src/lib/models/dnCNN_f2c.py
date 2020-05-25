@@ -4,34 +4,32 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, ReLU
 from tensorflow.keras.activations import relu
 
-class dnCNN(Model):
-    def __init__(self):
-        super(dnCNN, self).__init__()
+class dnCNN_f2c(Model):
+    def __init__(self, first_kernel):
+        super(dnCNN_f2c, self).__init__()
 
-        self.layer_1 = self.dnCNN_layer(64,16)
-        self.layer_2 = self.dnCNN_layer(64,3)
-        self.layer_3 = self.dnCNN_layer(64,3)
-        self.layer_4 = self.dnCNN_layer(64,3)
-        self.layer_5 = self.dnCNN_layer(64,3)
-        self.layer_6 = self.dnCNN_layer(64,3)
-        self.layer_7 = self.dnCNN_layer(64,3)
-        self.layer_8 = self.dnCNN_layer(64,3)
-        self.layer_9 = self.dnCNN_layer(64,3)
-        self.layer_10 = self.dnCNN_layer(64,3)
-        self.layer_11 = self.dnCNN_layer(64,3)
-        self.layer_12 = self.dnCNN_layer(64,3)
-        self.layer_13 = self.dnCNN_layer(64,3)
-        self.layer_14 = self.dnCNN_layer(64,3)
-        self.layer_15 = self.dnCNN_layer(64,3)
-        self.layer_16 = self.dnCNN_layer(64,3)
-        self.layer_17 = self.dnCNN_layer(64,3)
-        self.layer_18 = self.dnCNN_layer(64,3)
-        self.layer_19 = self.dnCNN_layer(64,3)
-        self.layer_20 = self.dnCNN_layer(64,3)
+        self.layer_1 = self.dnCNN_layer(16,first_kernel)
+        self.layer_2 = self.dnCNN_layer(16,3)
+        self.layer_3 = self.dnCNN_layer(16,3)
+        self.layer_4 = self.dnCNN_layer(16,3)
+        self.layer_5 = self.dnCNN_layer(16,3)
+        self.layer_6 = self.dnCNN_layer(16,3)
+        self.layer_7 = self.dnCNN_layer(16,3)
+        self.layer_8 = self.dnCNN_layer(16,3)
+        self.layer_9 = self.dnCNN_layer(16,3)
+        self.layer_10 = self.dnCNN_layer(16,3)
+        self.layer_11 = self.dnCNN_layer(16,3)
+        self.layer_12 = self.dnCNN_layer(16,3)
+        self.layer_13 = self.dnCNN_layer(16,3)
+        self.layer_14 = self.dnCNN_layer(16,3)
+        self.layer_15 = self.dnCNN_layer(16,3)
+        self.layer_16 = self.dnCNN_layer(16,3)
+        self.layer_17 = self.dnCNN_layer(16,3)
+        self.layer_18 = self.dnCNN_layer(16,3)
+        self.layer_19 = self.dnCNN_layer(16,3)
+        self.layer_20 = self.dnCNN_layer(16,3)
         initializer = tf.keras.initializers.GlorotNormal(seed=0)
-        self.last_conv = Conv2D(3, 3, strides=1, padding='same', kernel_initializer=initializer)
-
-       
+        self.last_conv = Conv2D(192, 1, strides=1, padding='same', kernel_initializer=initializer)
         
     def dnCNN_layer(self, filters, kernel_size):
         initializer = tf.keras.initializers.GlorotNormal(seed=0)

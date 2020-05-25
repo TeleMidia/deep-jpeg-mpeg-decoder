@@ -92,7 +92,7 @@ def load_experiment_data():
     return
 
 def get_model_last_data(mode="LastEpoch"):
-    global LAST_EPOCHccccccccccccccccccccccccccc
+    global LAST_EPOCH
     if mode =="LastEpoch":
         return LAST_EPOCH+1, dict_chart_data["Best_Validation_Result"]
     else: 
@@ -169,9 +169,45 @@ def draw_chart():
 
     plt.show()
 
+#input format = NxNx3
+def transform_frequency_to_channel(dct_tensor):
+
+    height = int(dct_tensor.shape[0]/8)
+    width = int(dct_tensor.shape[1]/8)
+
+    ch1 = np.zeros((height,height, 64), np.float32)
+    ch2 = np.zeros((height,height, 64), np.float32)
+    ch3 = np.zeros((height,height, 64), np.float32)
+    
+    for pos_x in range(0, width):
+        for pos_y in range(0, height):
+
+            ch1[pos_y, pos_x] = dct_tensor[(pos_y*8):((pos_y+1)*8), (pos_x*8):((pos_x+1)*8), 0].flatten()
+            ch2[pos_y, pos_x] = dct_tensor[(pos_y*8):((pos_y+1)*8), (pos_x*8):((pos_x+1)*8), 1].flatten()
+            ch3[pos_y, pos_x] = dct_tensor[(pos_y*8):((pos_y+1)*8), (pos_x*8):((pos_x+1)*8), 2].flatten()
 
 
-def load_dataset(root_folder, limit=None, loadOriginalImage=False):
+    return np.concatenate([ch1,ch2,ch3], axis=2)           
+
+#input format = NxNx192
+def transform_channel_to_frequency(dct_tensor):
+    
+    height = int(dct_tensor.shape[0]*8)
+    width = int(dct_tensor.shape[1]*8)
+    
+    ch1 = np.zeros((height,height, 1), np.float32)
+    ch2 = np.zeros((height,height, 1), np.float32)
+    ch3 = np.zeros((height,height, 1), np.float32)
+    
+    for pos_x in range(0, int(width/8)):
+        for pos_y in range(0, int(height/8)):
+            ch1[(pos_y*8):((pos_y+1)*8), (pos_x*8):((pos_x+1)*8), 0] = dct_tensor[pos_y, pos_x, 0:64].reshape((8, 8))
+            ch2[(pos_y*8):((pos_y+1)*8), (pos_x*8):((pos_x+1)*8), 0] = dct_tensor[pos_y, pos_x, 64:128].reshape((8, 8)) 
+            ch3[(pos_y*8):((pos_y+1)*8), (pos_x*8):((pos_x+1)*8), 0] = dct_tensor[pos_y, pos_x, 128:].reshape((8, 8)) 
+
+    return np.concatenate([ch1,ch2,ch3], axis=2)    
+
+def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False):
 
     dataset_x = []
     dataset_y = []
@@ -188,9 +224,15 @@ def load_dataset(root_folder, limit=None, loadOriginalImage=False):
             if img is None:
                 print("Corrupted dataset!")
                 return None, None
-        
-            dataset_x.append(jpg.encode_image(img, qtable_luma_10, qtable_chroma_10))
-            dataset_y.append(jpg.encode_image(img, qtable_luma_50, qtable_chroma_50))
+
+            dct_q10 = jpg.encode_image(img, qtable_luma_10, qtable_chroma_10)
+            dct_q50 = jpg.encode_image(img, qtable_luma_50, qtable_chroma_50)
+            if f2c == True:
+                dct_q10 = transform_frequency_to_channel(dct_q10)
+                dct_q50 = transform_frequency_to_channel(dct_q50)    
+
+            dataset_x.append(dct_q10)
+            dataset_y.append(dct_q50)
         else:
             basename_jpg = os.path.basename(file_)
             basename_q10 = basename_jpg.replace(".jpg","")+"_q10.npy"
@@ -198,8 +240,15 @@ def load_dataset(root_folder, limit=None, loadOriginalImage=False):
             file_ = file_.replace(basename_jpg, "")
             file_path_q10 = os.path.join(file_, basename_q10)
             file_path_q50 = os.path.join(file_, basename_q50)
-            dataset_x.append(np.load(file_path_q10))
-            dataset_y.append(np.load(file_path_q50))
+            dct_q10 = np.load(file_path_q10)
+            dct_q50 = np.load(file_path_q50)
+            
+            if f2c == True:
+                dct_q10 = transform_frequency_to_channel(dct_q10)
+                dct_q50 = transform_frequency_to_channel(dct_q50)
+            
+            dataset_x.append(dct_q10)
+            dataset_y.append(dct_q50)
 
         counter += 1
         if limit != None and counter >= limit:
@@ -207,7 +256,7 @@ def load_dataset(root_folder, limit=None, loadOriginalImage=False):
         
     return np.array(dataset_x), np.array(dataset_y)
 
-def show_samples(dataset_x, dataset_y, begin=0, end=1):
+def show_samples(dataset_x, dataset_y, begin=0, end=1, f2c=False):
 
     qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=50)
     qtable_luma_10, qtable_chroma_10 = jpg.generate_qtables(quality_factor=10)
@@ -216,13 +265,23 @@ def show_samples(dataset_x, dataset_y, begin=0, end=1):
     fig, axs = plt.subplots(quant, figsize=(15,15), frameon=True)
     for index in range(begin,end):
         axs[index].axis('off')
-        img_x = jpg.decode_image(dataset_x[index].copy(), qtable_luma_10, qtable_chroma_10)
-        img_y = jpg.decode_image(dataset_y[index].copy(), qtable_luma_50, qtable_chroma_50)
+        img_x = None
+        img_y = None
+        if f2c == True:
+            dct_x = transform_channel_to_frequency(dataset_x[index].copy())
+            dct_y = transform_channel_to_frequency(dataset_y[index].copy())
+
+            img_x = jpg.decode_image(dct_x, qtable_luma_10, qtable_chroma_10)
+            img_y = jpg.decode_image(dct_y, qtable_luma_50, qtable_chroma_50)
+        else:
+            img_x = jpg.decode_image(dataset_x[index].copy(), qtable_luma_10, qtable_chroma_10)
+            img_y = jpg.decode_image(dataset_y[index].copy(), qtable_luma_50, qtable_chroma_50)
+        
         axs[index].imshow(np.concatenate((cvt_bgr2rgb(img_x), cvt_bgr2rgb(img_y)), axis=1), vmin=0, vmax=255)
         
     plt.show()
 
-def convert_batch_dct2rgb(dataset_x, dataset_y, predict):
+def convert_batch_dct2rgb(dataset_x, dataset_y, predict, f2c=False):
     qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=50)
     qtable_luma_10, qtable_chroma_10 = jpg.generate_qtables(quality_factor=10)
     quant = predict.shape[0]
@@ -230,9 +289,17 @@ def convert_batch_dct2rgb(dataset_x, dataset_y, predict):
     list_dataset_y = []
     list_predict = []
     for index in range(quant):
-        list_dataset_x.append(cvt_bgr2rgb( jpg.decode_image(dataset_x[index].copy(), qtable_luma_10, qtable_chroma_10)))
-        list_dataset_y.append(cvt_bgr2rgb( jpg.decode_image(dataset_y[index].copy(), qtable_luma_50, qtable_chroma_50)))
-        list_predict.append(cvt_bgr2rgb( jpg.decode_image(predict[index].copy(), qtable_luma_50, qtable_chroma_50)))    
+        if f2c == True:
+            dct_x = transform_channel_to_frequency(dataset_x[index].copy())
+            dct_y = transform_channel_to_frequency(dataset_y[index].copy())
+            dct_p = transform_channel_to_frequency(predict[index].copy())
+            list_dataset_x.append(cvt_bgr2rgb( jpg.decode_image(dct_x, qtable_luma_10, qtable_chroma_10)))
+            list_dataset_y.append(cvt_bgr2rgb( jpg.decode_image(dct_y, qtable_luma_50, qtable_chroma_50)))
+            list_predict.append(cvt_bgr2rgb( jpg.decode_image(dct_p, qtable_luma_50, qtable_chroma_50)))    
+        else:
+            list_dataset_x.append(cvt_bgr2rgb( jpg.decode_image(dataset_x[index].copy(), qtable_luma_10, qtable_chroma_10)))
+            list_dataset_y.append(cvt_bgr2rgb( jpg.decode_image(dataset_y[index].copy(), qtable_luma_50, qtable_chroma_50)))
+            list_predict.append(cvt_bgr2rgb( jpg.decode_image(predict[index].copy(), qtable_luma_50, qtable_chroma_50)))    
 
     return np.array(list_dataset_x), np.array(list_dataset_y), np.array(list_predict) 
 
