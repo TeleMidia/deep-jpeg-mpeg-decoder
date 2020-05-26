@@ -16,6 +16,7 @@ pandas = "*"
 ipykernel = "*"
 jupyterlab = "*"
 tensorflow = "*"
+pydot = "*"
 
 [requires]
 python_version = "3.6"
