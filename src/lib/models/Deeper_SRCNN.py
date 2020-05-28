@@ -21,15 +21,9 @@ class DeeperSRCNN(Model):
     def DeeperSRCNN_block(self, filters, kernel_size, initializer):
 
         result = tf.keras.Sequential()
-        result.add(Conv2D(filters, kernel_size, activation=None, strides=1, padding='same', kernel_initializer=initializer))
-        result.add(BatchNormalization())
-        result.add(ReLU())
-        result.add(Conv2D(filters, kernel_size, activation=None, strides=1, padding='same', kernel_initializer=initializer))
-        result.add(BatchNormalization())
-        result.add(ReLU())
-        result.add(Conv2D(filters, kernel_size, activation=None, strides=1, padding='same', kernel_initializer=initializer))
-        result.add(BatchNormalization())
-        result.add(ReLU())
+        result.add(Conv2D(filters, kernel_size, activation='relu', strides=1, padding='same', kernel_initializer=initializer))
+        result.add(Conv2D(filters, kernel_size, activation='relu', strides=1, padding='same', kernel_initializer=initializer))
+        result.add(Conv2D(filters, kernel_size, activation='relu', strides=1, padding='same', kernel_initializer=initializer))
         return result
 
     def call(self, input):
