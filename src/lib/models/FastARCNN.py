@@ -4,9 +4,9 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, PReLU
 from tensorflow.keras.activations import relu
 
-class ARCNN(Model):
+class FastARCNN(Model):
     def __init__(self):
-        super(ARCNN, self).__init__()
+        super(FastARCNN, self).__init__()
         initializer = tf.keras.initializers.GlorotNormal(seed=0)
         
         
