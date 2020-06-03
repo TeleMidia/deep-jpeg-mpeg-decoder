@@ -207,7 +207,7 @@ def transform_channel_to_frequency(dct_tensor):
 
     return np.concatenate([ch1,ch2,ch3], axis=2)    
 
-def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False):
+def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False, inRoot=False):
 
     dataset_x = []
     dataset_y = []
@@ -217,7 +217,11 @@ def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False):
     qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=50)
     qtable_luma_10, qtable_chroma_10 = jpg.generate_qtables(quality_factor=10)
 
-    for file_ in tqdm(glob.iglob(root_folder+"/*/*.jpg")):
+    reg = "/*/*.jpg"
+    if inRoot == True:
+        reg = "/*.jpg"
+        
+    for file_ in tqdm(glob.iglob(root_folder+reg)):
         
         if loadOriginalImage == True:
             img = open_image(file_)
