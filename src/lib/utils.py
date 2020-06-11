@@ -357,6 +357,37 @@ def cvt_bgr2rgb(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 
+def add_margin_zeros(data_x, size=8):
+
+    data_x_size = data_x.shape[0]
+
+    dataset_x = []
+
+    zeros_1 = np.zeros((data_x.shape[1], size, 3))
+    zeros_2 = np.zeros((8,data_x.shape[2]+size, 3))
+
+    for i_nd in range(0,data_x_size):   
+        tensor_x = np.hstack([data_x[i_nd], zeros_1])
+        tensor_x = np.vstack([tensor_x, zeros_2])
+        dataset_x.append(tensor_x)
+
+    return np.array(dataset_x)
+
+def remove_margin_zeros(data_x, size=8):
+
+    data_x_size = data_x.shape[0]
+
+    height = data_x.shape[1]
+    width = data_x.shape[2]
+    dataset_x = []
+
+    for i_nd in range(0,data_x_size):
+        tensor_x = data_x[i_nd,:(height-8),:,:]
+        tensor_x = tensor_x[:,:(width-8),:] 
+        dataset_x.append(tensor_x)
+
+    return np.array(dataset_x)     
+
 def get_shift_scale_maxmin(train_x, train_y, valid_x, valid_y):
     
     SHIFT_VALUE_X = 0
