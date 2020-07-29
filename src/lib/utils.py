@@ -207,7 +207,7 @@ def transform_channel_to_frequency(dct_tensor):
 
     return np.concatenate([ch1,ch2,ch3], axis=2)    
 
-def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False, inRoot=False):
+def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False, inRoot=False, y_quality=50):
 
     dataset_x = []
     dataset_y = []
@@ -240,10 +240,17 @@ def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False, in
         else:
             basename_jpg = os.path.basename(file_)
             basename_q10 = basename_jpg.replace(".jpg","")+"_q10.npy"
-            basename_q50 = basename_jpg.replace(".jpg","")+"_q50.npy"
+            basename_q50 = basename_jpg.replace(".jpg","")+"_q"+str(y_quality)+".npy"
             file_ = file_.replace(basename_jpg, "")
             file_path_q10 = os.path.join(file_, basename_q10)
             file_path_q50 = os.path.join(file_, basename_q50)
+            
+            if not os.path.exists(file_path_q10):
+                continue
+
+            if not os.path.exists(file_path_q50):
+                continue
+
             dct_q10 = np.load(file_path_q10)
             dct_q50 = np.load(file_path_q50)
             
@@ -345,11 +352,11 @@ def open_image(path):
     img = cv2.imread(path)
     if img.shape[0]%8 != 0 or img.shape[1]%8 != 0:
         print("Invalid image size. Input image width and height should be multiple of 8.")
-        exit()
+        return None
 
     if img is None:
         print("Invalid image path.")
-        exit()
+        return None
 
     return img
 
