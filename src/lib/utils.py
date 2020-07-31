@@ -267,9 +267,9 @@ def load_dataset(root_folder, limit=None, loadOriginalImage=False, f2c=False, in
         
     return np.array(dataset_x), np.array(dataset_y)
 
-def show_samples(dataset_x, dataset_y, begin=0, end=1, f2c=False):
+def show_samples(dataset_x, dataset_y, begin=0, end=1, f2c=False, y_quality=50):
 
-    qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=50)
+    qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=y_quality)
     qtable_luma_10, qtable_chroma_10 = jpg.generate_qtables(quality_factor=10)
 
     quant = end - begin
@@ -292,8 +292,8 @@ def show_samples(dataset_x, dataset_y, begin=0, end=1, f2c=False):
         
     plt.show()
 
-def convert_batch_dct2rgb(dataset_x, dataset_y, predict, f2c=False):
-    qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=50)
+def convert_batch_dct2rgb(dataset_x, dataset_y, predict, f2c=False, y_quality=50):
+    qtable_luma_50, qtable_chroma_50 = jpg.generate_qtables(quality_factor=y_quality)
     qtable_luma_10, qtable_chroma_10 = jpg.generate_qtables(quality_factor=10)
     quant = predict.shape[0]
     list_dataset_x = []
