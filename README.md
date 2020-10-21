@@ -1,5 +1,5 @@
-# Deep-JPEG-Decoder
-A Deep Learning-based decoder for JPEG files
+# Deep-JPEG/MPEG-Decoder
+A Deep Learning-based decoder for JPEG/MPEG files
 
 
 ## Building the repository
